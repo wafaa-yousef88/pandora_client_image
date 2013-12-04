@@ -182,7 +182,11 @@ def video_cmd(video, target, profile, info):
         audiobitrate = '22k'
         audiochannels = 1
 
-    cmd = [command('convert'), video, '-resize', 'x480', target]
+    cmd = [command('convert'), video, '-resize', 'x720', target]
+    x = 'x'
+    res_val = x + str(height)
+    #cmd = [command('convert'), video, '-resize', res_val, target]
+    #cmd = [command('convert'), video, target]
     print "cmd print %s" % cmd
     return cmd
 
