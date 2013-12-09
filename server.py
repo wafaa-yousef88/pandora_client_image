@@ -138,7 +138,7 @@ class Server(Resource):
 						#response['cmd'] = extract.video_cmd(url, output, self.client.profile, info)
 						#wafaa response['cmd'][0] = 'ffmpeg'
 						#wafaa replaced the previous two lines with the following two lines
-                        response['cmd'] = extract.video_cmd(url, output, self.client.profile, info)
+                        response['cmd'] = extract.image_cmd(url, output, self.client.profile, info)
                         response['cmd'][0] = 'convert'												
                         response['output'] = output
                         self.update_status(oshash, 'active')

@@ -63,7 +63,7 @@ def encode(filename, prefix, profile, info=None, extract_frames=True):
         media_f = os.path.join(cache, profile)
         if not os.path.exists(media_f) \
             or os.stat(media_f).st_size == 0:
-            extract.video(filename, media_f, profile, info)
+            extract.image(filename, media_f, profile, info)
     else:
         print info
         print filename
@@ -83,7 +83,8 @@ def encode_cmd(filename, prefix, profile, info):
     oshash = info['oshash']
     cache = os.path.join(prefix, os.path.join(*utils.hash_prefix(oshash)))
     media_f = os.path.join(cache, profile)
-    return extract.video_cmd(filename, media_f, profile, info)
+    #wafaa renamed video_cmd() func 
+    return extract.image_cmd(filename, media_f, profile, info)
 
 def parse_path(client, path):
     '''

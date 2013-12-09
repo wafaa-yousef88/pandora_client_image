@@ -100,7 +100,7 @@ def supported_formats():
 wafaa We need to add img_cmd() func in future
 '''
 
-def video_cmd(video, target, profile, info):
+def image_cmd(video, target, profile, info):
 
     if not os.path.exists(target):
         ox.makedirs(os.path.dirname(target))
@@ -183,8 +183,8 @@ def video_cmd(video, target, profile, info):
         audiochannels = 1
 
     cmd = [command('convert'), video, '-resize', 'x720', target]
-    x = 'x'
-    res_val = x + str(height)
+    #x = 'x'
+    #res_val = x + str(height)
     #cmd = [command('convert'), video, '-resize', res_val, target]
     #cmd = [command('convert'), video, target]
     print "cmd print %s" % cmd
@@ -196,8 +196,8 @@ def copy_orig(video, target2, orig_profile, info):
     cmd = [command('cp'), video, target]
     return cmd
 '''
-def video(video, target, profile, info):
-    cmd = video_cmd(video, target, profile, info)
+def image(video, target, profile, info):
+    cmd = image_cmd(video, target, profile, info)
     profile, format = profile.split('.')
     #r = run_command(cmd, -1)
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
