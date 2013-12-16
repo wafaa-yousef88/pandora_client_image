@@ -61,11 +61,12 @@ def imginfo(filename, cached=True):
             reg = re.compile('"metadata": {.*?},', re.DOTALL)
             info = re.sub(reg, '', info)
             info = json.loads(info)
-        if 'video' in info:
-            for v in info['video']:
-                if not 'display_aspect_ratio' in v and 'width' in v:
-                    v['display_aspect_ratio'] = '%d:%d' % (v['width'], v['height'])
-                    v['pixel_aspect_ratio'] = '1:1'
+        #wafaa
+        #if 'video' in info:
+            #for v in info['video']:
+                #if not 'display_aspect_ratio' in v and 'width' in v:
+                    #v['display_aspect_ratio'] = '%d:%d' % (v['width'], v['height'])
+                    #v['pixel_aspect_ratio'] = '1:1'
         return info
 
     return {'path': filename, 'size': 0}
@@ -79,10 +80,10 @@ def avinfo(filename):
                 dar = AspectRatio(info['video'][0]['width'], info['video'][0]['height'])
                 info['video'][0]['display_aspect_ratio'] = dar.ratio'''
 
-        if 'image' in info and info['image'] and 'width' in info['image'][0]:
+        '''if 'image' in info and info['image'] and 'width' in info['image'][0]:
             if not 'display_aspect_ratio' in info['image'][0]:
                 dar = AspectRatio(info['image'][0]['width'], info['image'][0]['height'])
-                info['image'][0]['display_aspect_ratio'] = dar.ratio
+                info['image'][0]['display_aspect_ratio'] = dar.ratio'''
         del info['path']
         if os.path.splitext(filename)[-1] in ('.srt', '.sub', '.idx', '.rar') and 'error' in info:
             del info['error']

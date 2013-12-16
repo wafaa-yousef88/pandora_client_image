@@ -147,7 +147,8 @@ class Client(object):
         #self.profile = self._config.get('profile', '480p.webm')
         '''Wafaa added new profile to fit for Images'''				
         #self.img_profile = self._config.get('img_profile', '480p.png')
-        self.profile = self._config.get('profile', '480p.png')
+        #self.profile = self._config.get('profile', '480p.png')
+        self.profile = self._config.get('profile', '720p.png')
 
         if not offline:
             self.online()
