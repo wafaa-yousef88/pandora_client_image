@@ -16,6 +16,7 @@ import sqlite3
 import sys
 import time
 import pkg_resources
+from urlparse import urlparse
 
 import ox
 
@@ -337,7 +338,6 @@ class Client(object):
         #send empty list to get updated list of requested info/files/data
         site = self._config['url']
         post = {'info': {}}
-        print post
         r = self.api.update(post)
         files = r['data']['data']
         if add:
@@ -382,38 +382,7 @@ class Client(object):
                           t)
                 conn.commit()
         return True
-    #wafaa added img_scan_file()
-    '''def img_scan_file(self, path):
-        conn, c = self._conn()
 
-        update = True
-        modified = time.mktime(time.localtime())
-        created = modified
-
-        sql = 'SELECT atime, ctime, mtime, size, created FROM file WHERE deleted < 0 AND path=?'
-        c.execute(sql, [path])
-        stat = os.stat(path)
-        for row in c:
-            if stat.st_atime == row[0] and stat.st_ctime == row[1] and stat.st_mtime == row[2] and stat.st_size == row[3]:
-                created = row[4]
-                update = False
-            break
-        if update:
-            info = utils.imginfo(path)
-            #if 'error' in info or info['size'] == 0:
-                #print info
-                #return False
-            if info['size'] > 0:
-                oshash = info['oshash']
-                sha1 = None
-                deleted = -1
-                t = (path, oshash, stat.st_atime, stat.st_ctime, stat.st_mtime,
-                     stat.st_size, json.dumps(info), created, modified, deleted, sha1)
-                c.execute(u'INSERT OR REPLACE INTO file values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                          t)
-                conn.commit()
-        return True
-    '''
     def cmd(self, args):
         filename = args[0]
         if len(filename) == 16:
@@ -561,70 +530,7 @@ class Client(object):
             '''
             print "scanned volume %s: %s files, %s new, %s deleted, %s ignored" % (
                     name, len(files), len(new_files), len(deleted_files), len(ignored))
-    #wafaa added img_scan()
-    '''def img_scan(self, args):
-        print "checking for new files ..."
-        volumes = self.active_volumes()
-        for name in sorted(volumes):
-            path = volumes[name]
-            conn, c = self._conn()
-            c.execute('SELECT path FROM file WHERE path LIKE ? AND deleted < 0', ["%s%%"%path])
-            known_files = [r[0] for r in c.fetchall()]
 
-            files = []
-            unknown = []
-            ignored = []
-            unsupported = []
-            for dirpath, dirnames, filenames in os.walk(path, followlinks=True):
-                if isinstance(dirpath, str):
-                    dirpath = dirpath.decode('utf-8')
-                if filenames:
-                    for filename in sorted(filenames):
-                        if isinstance(filename, str):
-                            filename = filename.decode('utf-8')
-                        file_path = os.path.join(dirpath, filename)
-                        if not ignore_file(self, file_path):
-                            files.append(file_path)
-                        else:
-                            ignored.append(file_path)
-            for f in files:
-                if not parse_path(self, f[len(path):]):
-                    unknown.append(f)
-
-            files = list(set(files) - set(unknown))
-
-            for f in files:
-                if not self.img_scan_file(f):
-                    unsupported.append(f)
-
-            if unknown:
-                example = example_path(self)
-                print 'Files need to be in a folder structure like this:\n%s\n' % example
-                print 'The following files do not fit into the folder structure and will not be synced:'
-                print '\t',
-                print '\n\t'.join([f[len(path):].encode('utf-8') for f in unknown])
-                print ''
-
-            #if unsupported:
-                #files = list(set(files) - set(unsupported))
-                #print 'The following files are in an unsupported format and will not be synced:'
-                #print '\t',
-                #print '\n\t'.join([f[len(path):] for f in unsupported])
-                #print ''
-
-            deleted_files = filter(lambda f: f not in files, known_files)
-            new_files = filter(lambda f: f not in known_files, files)
-            conn, c = self._conn()
-            if deleted_files:
-                deleted = time.mktime(time.localtime())
-                for f in deleted_files:
-                    c.execute('UPDATE file SET deleted=? WHERE path=?', (deleted, f))
-                conn.commit()
-            #print "scanned volume %s: %s files, %s new, %s deleted, %s ignored, %s unsupported" % (
-                    #name, len(files), len(new_files), len(deleted_files), len(ignored), len(unsupported))
-            print "scanned volume %s: %s files, %s new, %s deleted, %s ignored" % (
-                    name, len(files), len(new_files), len(deleted_files), len(ignored))
-    '''
 
     def extract(self, args):
         conn, c = self._conn()
@@ -674,9 +580,6 @@ class Client(object):
             post['volume'] = name
             print 'sending list of files in %s (%s total)' % (name, len(post['files']))
             r = self.api.update(post)
-            '''wafaa added the following two print lines'''
-            print 'post in sync %s' % post
-            print 'response in sync %s' % r
             if r['status']['code'] == 200:
                 #backend works on update request asyncronously, wait for it to finish
                 if 'taskId' in r['data']:
@@ -688,7 +591,7 @@ class Client(object):
                     #send empty list to get updated list of requested info/files/data
                     post = {'info': {}}
                     r = self.api.update(post)
-                    print 'second response in sync %s' % r
+
                 if r['data']['info']:
                     info = r['data']['info']
                     max_info = 100
@@ -702,11 +605,7 @@ class Client(object):
                             sent += len(post['info'])
                     if sent:
                         print 'sent info for %s files' % sent
-                        '''wafaa added the following print'''
-                        print 'info here %s' % info
-                        '''wafaa added the following else & print'''
-                    else:
-                        print 'not sent %s %s' % (info, post)
+
         if not 'data' in r:
             print r
             return
@@ -732,104 +631,6 @@ class Client(object):
                 print '\ncould upload %s subtitles:\n' % len(files)
                 print '\n'.join(files)
 
-    #wafaa added img_upload
-    '''def img_upload(self, args):
-        if not self.user:
-            print "you need to login"
-            return
-        conn, c = self._conn()
-        if args:
-            data = []
-            for arg in args:
-                if os.path.exists(arg):
-                    oshash = ox.oshash(arg)
-                    r = self.api.findMedia({'query': {
-                        'conditions': [{'key': 'oshash', 'value': oshash}]
-                    }})['data']['items']
-                    if r == 0:
-                        self.img_scan_file(arg)
-                        info = self.info(oshash)
-                        filename = os.path.basename(arg)
-                        r = self.api.addMedia({
-                            'id': oshash,
-                            'info': info,
-                            'filename': filename
-                        })
-                        #wafaa added the following print
-                        print "arg %s" % arg
-                    data.append(oshash)
-                else:
-                    data.append(arg)
-            files = []
-            info = []
-        else:
-            #send empty list to get updated list of requested info/files/data
-            post = {'info': {}}
-            r = self.api.update(post)
-            data = r['data']['data']
-            files = r['data']['file']
-            info = r['data']['info']
-            #wafaa
-            print 'empty data sent and %s' % r
-        
-        if info:
-            print 'info for %d files requested' % len(info)
-            max_info = 100
-            total = len(info)
-            sent = 0
-            for offset in range(0, total, max_info):
-                post = {'info': {}, 'upload': True}
-                post['info'] = self.get_info_for_ids(info[offset:offset+max_info])
-                if len(post['info']):
-                    r = self.api.update(post)
-                    sent += len(post['info'])
-            if sent:
-                print 'uploading info for %d files' % sent
-            #wafaa added following else
-        else:
-            print "no info but %s" % info
-        if data:
-            print 'encoding and uploading %s images' % len(data)
-            for oshash in data:
-                data = {}
-                info = self.info(oshash)
-                if info and not 'error' in info:
-                    for path in self.path(oshash):
-                        if os.path.exists(path):
-                            if not self.api.uploadImage(path,
-                                                    data, self.profile, info):
-                                print 'image upload failed, giving up, please try again'
-                                print 'Path %s, Data %s, Profile %s, Info %s' % (path, data, self.profile, info)
-                                return
-                            if 'rightsLevel' in self._config:
-                                r = self.api.find({'query': {
-                                    'conditions': [
-                                        {'key': 'oshash', 'value': oshash, 'operator': '=='}
-                                    ],
-                                    'keys': ['id'],
-                                    'range': [0, 1]
-                                }})
-                                if r['data']['items']:
-                                    item = r['data']['items'][0]['id']
-                                    r = self.api.edit({
-                                        'item': item,
-                                        'rightsLevel': self._config['rightsLevel']
-                                    })
-                            break
-            #wafaa added following else
-        else:
-            print "no data %s" % data       
-        if files:
-            print 'uploading %s files' % len(files)
-            for oshash in files:
-                for path in self.path(oshash):
-                    if os.path.exists(path):
-                        self.api.uploadData(path, oshash)
-                        break
-            #wafaa added following else
-        else:
-            print "no files %s" %files
-    '''
     def upload(self, args):
         if not self.user:
             print "you need to login"
@@ -840,11 +641,11 @@ class Client(object):
             for arg in args:
                 if os.path.exists(arg):
                     oshash = ox.oshash(arg)
+                    self.scan_file(arg)
                     r = self.api.findMedia({'query': {
                         'conditions': [{'key': 'oshash', 'value': oshash}]
                     }})['data']['items']
                     if r == 0:
-                        self.scan_file(arg)
                         info = self.info(oshash)
                         filename = os.path.basename(arg)
                         r = self.api.addMedia({
@@ -852,8 +653,6 @@ class Client(object):
                             'info': info,
                             'filename': filename
                         })
-                        '''wafaa added the following print '''
-                        print "arg %s" % arg
                     data.append(oshash)
                 else:
                     data.append(arg)
@@ -866,8 +665,6 @@ class Client(object):
             data = r['data']['data']
             files = r['data']['file']
             info = r['data']['info']
-            '''wafaa'''
-            print 'empty data sent and %s' % r
         
         if info:
             print 'info for %d files requested' % len(info)
@@ -882,10 +679,7 @@ class Client(object):
                     sent += len(post['info'])
             if sent:
                 print 'uploading info for %d files' % sent
-            '''wafaa added following else
-            '''								
-        else:
-            print "no info but %s" % info
+
         if data:
             print 'encoding and uploading %s videos' % len(data)
             for oshash in data:
@@ -897,7 +691,6 @@ class Client(object):
                             if not self.api.uploadVideo(path,
                                                     data, self.profile, info):
                                 print 'video upload failed, giving up, please try again'
-                                print 'Path %s, Data %s, Profile %s, Info %s' % (path, data, self.profile, info)
                                 return
                             if 'rightsLevel' in self._config:
                                 r = self.api.find({'query': {
@@ -914,10 +707,7 @@ class Client(object):
                                         'rightsLevel': self._config['rightsLevel']
                                     })
                             break
-            '''wafaa added following else
-            '''										
-        else:
-            print "no data %s" % data       
+
         if files:
             print 'uploading %s files' % len(files)
             for oshash in files:
@@ -925,10 +715,6 @@ class Client(object):
                     if os.path.exists(path):
                         self.api.uploadData(path, oshash)
                         break
-            '''wafaa added following else
-            '''								
-        else:
-            print "no files %s" %files
 
     def upload_frames(self, args):
         if not self.user:
@@ -1057,31 +843,6 @@ class API(ox.API):
                     form.add_file('frame', fname, open(frame, 'rb'))
             r = self._json_request(self.url, form)
             return r
-    #wafaa added following func
-    '''def uploadImage(self, filename, data, profile, info=None):
-        i = img_encode(filename, self.media_cache, profile, info,
-                   self.site['media'].get('importFrames'))
-        if not i:
-            print "failed"
-            return
-
-        #upload frames
-        r = self.uploadFrames(i, data)
-
-        #upload media 
-        if os.path.exists(i['media']):
-            size = ox.format_bytes(os.path.getsize(i['media']))
-            print "uploading %s of %s (%s)" % (profile, os.path.basename(filename), size)
-            url = self.url + 'upload/' + '?profile=' + str(profile) + '&id=' + i['oshash']
-            if not self.upload_chunks(url, i['media'], data):
-                if DEBUG:
-                    print "failed"
-                return False
-        else:
-            print "Failed"
-            return False
-        return True
-    '''
 
     def uploadVideo(self, filename, data, profile, info=None):
         i = encode(filename, self.media_cache, profile, info,
@@ -1142,6 +903,9 @@ class API(ox.API):
         result_url = data.get('url')
         if 'uploadUrl' in data:
             uploadUrl = data['uploadUrl']
+            if uploadUrl.startswith('/'):
+                u = urlparse(url)
+                uploadUrl = '%s://%s%s' % (u.scheme, u.netloc, uploadUrl)
             f = open(filename)
             fsize = os.stat(filename).st_size
             done = 0
@@ -1189,8 +953,6 @@ class API(ox.API):
                         return False
                     if data['status']['code'] != 200:
                         print "request returned error, will try again in 5 seconds"
-                        #wafaa added print
-												# uwe- just enable debug :S print "DATA: %s" % (data)
                         if DEBUG:
                             print data
                         time.sleep(5)

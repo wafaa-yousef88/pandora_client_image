@@ -76,24 +76,13 @@ def frame(video, target, position):
     return r == 0
 '''This function is not used till now'''
 def supported_formats():
-    #wafaa commented the following line of code
-		#p = subprocess.Popen([command('ffmpeg'), '-codecs'],
-    #wafaa p = subprocess.Popen([command('identify'), '-list', 'format'],		
-    #wafaa replaced the previous commented line with following cmd
-    p = subprocess.Popen([command('convert')],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen([command('ffmpeg'), '-codecs'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     return {
-      #'ogg': 'libtheora' in stdout and 'libvorbis' in stdout,
-      #wafaa commented the following two lines and replaced them with coming lines
-		  #'webm': 'libvpx' in stdout and 'libvorbis' in stdout,
-		  #'mp4': 'libx264' in stdout and 'libvo_aacenc' in stdout,
-      #wafaa added the following 5 lines
-			'jpg' in stdout,
-			'jpeg' in stdout,
-			'png' in stdout,	
-       #wafaa 'webp': 'libwebp2' in stdout,
-       #'webp' in stdout,
+        #'ogg': 'libtheora' in stdout and 'libvorbis' in stdout,
+        'webm': 'libvpx' in stdout and 'libvorbis' in stdout,
+        'mp4': 'libx264' in stdout and 'libvo_aacenc' in stdout,
     }
 
 '''
@@ -214,7 +203,6 @@ def image(video, target, profile, info):
             os.unlink("%s.mp4" % target)
         print 'Input:\t', video
         print 'Output:\t', target
-        #print 'Output:\t', jpgtarget
     except KeyboardInterrupt:
         p.kill()
         r = 1

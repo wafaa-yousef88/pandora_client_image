@@ -39,38 +39,6 @@ class AspectRatio(fractions.Fraction):
     def ratio(self):
         return "%d:%d" % (self.numerator, self.denominator)
 
-#wafaa created imginfo func
-'''
-def imginfo(filename, cached=True):
-    if cached:
-        return cache(filename, 'info')
-    if os.path.getsize(filename):
-        ffmpeg2theora = cmd('ffmpeg2theora')
-        p = subprocess.Popen([ffmpeg2theora], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        info, error = p.communicate()
-        version = info.split('\n')[0].split(' - ')[0].split(' ')[-1]
-        if version < '0.27':
-            raise EnvironmentError('version of ffmpeg2theora needs to be 0.27 or later, found %s' % version)
-        p = subprocess.Popen([ffmpeg2theora, '--info', filename],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        info, error = p.communicate()
-        try:
-            info = json.loads(info)
-        except:
-            #remove metadata, can be broken
-            reg = re.compile('"metadata": {.*?},', re.DOTALL)
-            info = re.sub(reg, '', info)
-            info = json.loads(info)
-        #wafaa
-        #if 'video' in info:
-            #for v in info['video']:
-                #if not 'display_aspect_ratio' in v and 'width' in v:
-                    #v['display_aspect_ratio'] = '%d:%d' % (v['width'], v['height'])
-                    #v['pixel_aspect_ratio'] = '1:1'
-        return info
-
-    return {'path': filename, 'size': 0}
-'''
 def avinfo(filename):
     if os.path.getsize(filename):
         info = ox.avinfo(filename)
@@ -107,8 +75,7 @@ def run_command(cmd, timeout=25):
         os.kill(p.pid, 9)
         killedpid, stat = os.waitpid(p.pid, os.WNOHANG)
     return p.returncode
-
-#wafaa
+    
 def video_frame_positions(duration):
     pos = duration / 2
     #return [pos/4, pos/2, pos/2+pos/4, pos, pos+pos/2, pos+pos/2+pos/4]
