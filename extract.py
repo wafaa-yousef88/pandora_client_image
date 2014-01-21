@@ -183,11 +183,10 @@ def image_cmd(video, target, profile, info):
         audiochannels = 1
 
     cmd = [command('convert'), video, '-scale', 'x720', target]
-    #cmd = [command('convert'), video, '-thumbnail', '30%', target]
+    #cmd = [command('convert'), video, '-scale', 'x1080', target]
     #x = 'x'
     #res_val = x + str(profile)
     #cmd = [command('convert'), video, '-resize', res_val, target]
-    #cmd = [command('convert'), video, target]
     print "cmd print %s" % cmd
     return cmd
 
